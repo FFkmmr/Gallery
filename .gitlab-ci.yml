@@ -1,0 +1,21 @@
+stages:
+  - deploy
+
+deploy_to_infinityfree:
+  stage: deploy
+  image: alpine:latest
+  only:
+    - main  # Деплой только при push в ветку main
+  before_script:
+    - apk add --no-cache lftp  # Устанавливаем FTP-клиент
+  script:
+    - |
+      lftp -c "
+      set ftp:ssl-allow no;
+      open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST;
+      mirror -R --exclude .git/ --exclude .gitlab-ci.yml --exclude .gitignore ./ ./htdocs;
+      bye
+      "
+  environment:
+    name: production
+    url: http://mitsuhano-test-server.infinityfree.me
